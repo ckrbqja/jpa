@@ -5,11 +5,13 @@ import com.example.jpa.dto.MemberTeamDto;
 import com.example.jpa.dto.QMemberTeamDto;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
 
@@ -96,7 +98,7 @@ public class MemberRepCustomImpl implements MemberRepCustom {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long l = queryFactory
+        JPAQuery<MemberTeamDto> where = queryFactory
                 .select(new QMemberTeamDto(
                         member.id.as("memberId"),
                         member.username,
@@ -111,10 +113,10 @@ public class MemberRepCustomImpl implements MemberRepCustom {
                         teamnameEq(condition.getTeamName()),
                         ageGoe(condition.getAgeGoe()),
                         getLoe(condition.getAgeLoe())
-                ).fetchCount();
+                );
 
 
-        return new PageImpl<>(fetch,pageable,l);
+        return PageableExecutionUtils.getPage(fetch,pageable, where::fetchCount);
     }
 
     private BooleanExpression usernameEq(String username) {
